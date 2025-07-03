@@ -4,9 +4,7 @@ async function getSetup() {
   const resultBox = document.getElementById("result");
   resultBox.innerHTML = "Fetching data...";
 
-  const interval = tf;
-  const limit = 100;
-  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${interval}&limit=${limit}`;
+  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${tf}&limit=100`;
 
   try {
     const res = await fetch(url);
@@ -31,15 +29,19 @@ async function getSetup() {
 
     if (rsi < 35) reason.push("RSI oversold");
     if (Math.abs(current - support) / current < 0.03) reason.push("Bounce from support zone");
-
     if (reason.length === 0) reason.push("Basic resistance-based setup");
 
+    // Calculate percentages
+    let perc1 = (((target1 - current) / current) * 100).toFixed(2);
+    let perc2 = target2 ? (((target2 - current) / current) * 100).toFixed(2) : null;
+    let percSL = (((current - stoploss) / current) * 100).toFixed(2);
+
     resultBox.innerHTML = `
-      <strong>Symbol:</strong> ${symbol} (${interval})<br>
+      <strong>Symbol:</strong> ${symbol} (${tf})<br>
       <strong>Entry:</strong> ${current}<br>
-      <strong>Target 1:</strong> ${target1}<br>
-      ${target2 ? `<strong>Target 2:</strong> ${target2.toFixed(4)}<br>` : ""}
-      <strong>Stoploss:</strong> ${stoploss}<br>
+      <strong>Target 1:</strong> ${target1} (${perc1}% profit)<br>
+      ${target2 ? `<strong>Target 2:</strong> ${target2.toFixed(4)} (${perc2}% profit)<br>` : ""}
+      <strong>Stoploss:</strong> ${stoploss} (${percSL}% risk)<br>
       <strong>Reason:</strong> ${reason.join(" + ")}
     `;
   } catch (err) {
