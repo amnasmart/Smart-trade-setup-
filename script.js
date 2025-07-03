@@ -17,11 +17,12 @@ async function getSetup() {
     const current = closes[closes.length - 1];
     const support = Math.min(...lows.slice(-10));
     const resistance = Math.max(...highs.slice(-10));
-    const stoploss = +(support * 0.98).toFixed(4);
 
+    const stoploss = +(support * 0.99).toFixed(4); // tighter SL
     let target1 = +resistance.toFixed(4);
-    let target2 = target1 * 1.03;
-    if (target2 <= current * 1.05) target2 = null;
+    let target2 = +((resistance * 1.06).toFixed(4)); // more aggressive T2
+
+    if (target2 <= current * 1.03) target2 = null; // remove if not far enough
 
     // RSI Calculation
     const rsi = calcRSI(closes);
@@ -31,17 +32,21 @@ async function getSetup() {
     if (Math.abs(current - support) / current < 0.03) reason.push("Bounce from support zone");
     if (reason.length === 0) reason.push("Basic resistance-based setup");
 
-    // Calculate percentages
+    // Calculate % gain/loss
     let perc1 = (((target1 - current) / current) * 100).toFixed(2);
     let perc2 = target2 ? (((target2 - current) / current) * 100).toFixed(2) : null;
     let percSL = (((current - stoploss) / current) * 100).toFixed(2);
+
+    // Setup Score
+    const setupType = (parseFloat(perc1) > parseFloat(percSL)) ? "✅ Good Setup" : "⚠️ Weak Setup";
 
     resultBox.innerHTML = `
       <strong>Symbol:</strong> ${symbol} (${tf})<br>
       <strong>Entry:</strong> ${current}<br>
       <strong>Target 1:</strong> ${target1} (${perc1}% profit)<br>
-      ${target2 ? `<strong>Target 2:</strong> ${target2.toFixed(4)} (${perc2}% profit)<br>` : ""}
+      ${target2 ? `<strong>Target 2:</strong> ${target2} (${perc2}% profit)<br>` : ""}
       <strong>Stoploss:</strong> ${stoploss} (${percSL}% risk)<br>
+      <strong>Setup:</strong> ${setupType}<br>
       <strong>Reason:</strong> ${reason.join(" + ")}
     `;
   } catch (err) {
